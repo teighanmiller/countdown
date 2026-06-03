@@ -10,7 +10,7 @@ def render():
     p2_guess = st.session_state.get("theme_p2_guess_text", "—")
     winner = st.session_state.get("conundrum_winner")
 
-    st.markdown("## Game Over!")
+    st.header("Game Over!", anchor=False)
     st.markdown("---")
 
     # Winner announcement
@@ -44,7 +44,7 @@ def render():
     st.markdown("---")
 
     # Theme reveal
-    st.markdown("## The Hidden Theme Was...")
+    st.header("The Hidden Theme Was...", anchor=False)
     st.markdown(
         f"<div style='font-size:2.5rem;font-weight:bold;text-align:center;"
         f"color:#FFD700;padding:1rem;background:#16213e;border-radius:12px;'>{theme}</div>",
@@ -54,7 +54,7 @@ def render():
     st.markdown(game["commentary"].get("themeReveal", ""))
 
     st.markdown("---")
-    st.markdown("### How the theme was hidden in each round")
+    st.subheader("How the theme was hidden in each round", anchor=False)
     letter_rounds = game.get("letterRounds", [])
     number_rounds = game.get("numberRounds", [])
     conundrum = game.get("conundrum", {})
@@ -66,7 +66,7 @@ def render():
     st.markdown(f"**Conundrum** — `{conundrum.get('word', '')}`: {conundrum.get('themeConnection', '')}")
 
     st.markdown("---")
-    st.markdown("### Your theme guesses")
+    st.subheader("Your theme guesses", anchor=False)
     st.markdown(f"**{p1}** guessed: *{p1_guess}*")
     st.markdown(f"**{p2}** guessed: *{p2_guess}*")
 

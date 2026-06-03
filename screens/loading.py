@@ -8,7 +8,7 @@ from lib.game_generator import build_game
 def render():
     p1, p2 = st.session_state.players[0], st.session_state.players[1]
 
-    st.markdown("## Generating your game...")
+    st.header("Generating your game...", anchor=False)
     st.markdown(f"Picking a hidden theme for **{p1}** vs **{p2}**.")
 
     # First pass: render the loading UI and flush it to the browser, then rerun to start generation.

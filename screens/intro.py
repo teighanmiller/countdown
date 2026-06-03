@@ -5,7 +5,7 @@ def render():
     game = st.session_state.game
     p1, p2 = st.session_state.players
 
-    st.markdown("## The game is ready!")
+    st.header("The game is ready!", anchor=False)
     st.markdown(f"**Category:** {game.get('themeCategory', 'General Knowledge')}")
     st.markdown("---")
     st.info(game["commentary"]["intro"])

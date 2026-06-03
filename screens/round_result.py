@@ -8,7 +8,7 @@ def render():
     r_type = result["type"]
 
     if r_type == "letter":
-        st.markdown(f"## Letter Round {result['round']} — Results")
+        st.header(f"Letter Round {result['round']} — Results", anchor=False)
         col1, col2 = st.columns(2)
         with col1:
             st.markdown(f"**{p1}**")
@@ -20,7 +20,7 @@ def render():
             st.markdown(f"Score this round: **{result['p2']['score']} pts**")
         st.markdown(f"Best possible word: **{result['optimal']}** ({len(result['optimal'])} letters)")
     else:
-        st.markdown(f"## Number Round {result['round']} — Results")
+        st.header(f"Number Round {result['round']} — Results", anchor=False)
         col1, col2 = st.columns(2)
         with col1:
             st.markdown(f"**{p1}**")

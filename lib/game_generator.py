@@ -40,6 +40,7 @@ def _validate_letter_round(round_data: dict) -> bool:
     if len(letters) != 9 or len(optimal) < 3:
         return False
     from collections import Counter
+
     avail = Counter(letters)
     needed = Counter(optimal)
     for ch, cnt in needed.items():
@@ -78,16 +79,26 @@ Return a JSON object with exactly these keys:
     return chat_json(THEME_SYSTEM, user, max_tokens=256)
 
 
-def generate_game_session(theme_data: dict, wiki_context: list[str], difficulty: str) -> dict:
+def generate_game_session(
+    theme_data: dict, wiki_context: list[str], difficulty: str
+) -> dict:
     """Step 2: Generate full game session grounded in Wikipedia context."""
     theme = theme_data["theme"]
     category = theme_data.get("themeCategory", "General Knowledge")
-    context_block = "\n\n".join(f"[Wikipedia excerpt {i+1}]:\n{c}" for i, c in enumerate(wiki_context))
+    context_block = "\n\n".join(
+        f"[Wikipedia excerpt {i+1}]:\n{c}" for i, c in enumerate(wiki_context)
+    )
 
     difficulty_word_guidance = {
-        "easy": "Choose optimalWords that are STRONGLY and OBVIOUSLY associated with the theme — a player who knows the theme should immediately recognise the connection. Prefer iconic, well-known words directly naming things from the theme.",
-        "medium": "Choose optimalWords that are clearly connected to the theme but require some knowledge to recognise — not the most obvious word, but still recognisably thematic.",
-        "hard": "Choose optimalWords with subtle or indirect thematic connections that only an expert would notice immediately.",
+        "easy": (
+            "Choose optimalWords that are COMMON, EVERYDAY English words — the kind any adult would know without any specialist knowledge. "
+            "Think words from basic conversation, school, or daily life: things like WATER, BRIDGE, LIGHT, STONE, RIVER, CLOUD, TRADE, PLANT. "
+            "Absolutely NO domain-specific vocabulary, technical terms, scientific names, archaic words, or obscure nouns. "
+            "If a word would require a dictionary to define, reject it. "
+            "The thematic connection is nice but secondary — word familiarity comes first on easy mode."
+        ),
+        "medium": "Choose optimalWords that are clearly connected to the theme but require some knowledge to recognise — not the most obvious word, but still recognisably thematic. Avoid highly technical jargon.",
+        "hard": "Choose optimalWords with subtle or indirect thematic connections that only an expert would notice immediately. Obscure but valid dictionary words are fine.",
     }[difficulty]
 
     user = f"""Theme: {theme}
@@ -209,6 +220,7 @@ def _find_valid_word_for_letters(letters: list[str]) -> tuple[bool, str]:
     """Try to find the longest valid word formable from the given letters."""
     from collections import Counter
     from lib.dictionary import all_words
+
     avail = Counter(l.upper() for l in letters)
     best = ""
     for word in all_words():

@@ -42,7 +42,7 @@ def render():
         st.session_state[scramble_key] = _rescramble(word)
     scrambled = st.session_state[scramble_key]
 
-    st.markdown("## Final Showdown — The Conundrum")
+    st.header("Final Showdown — The Conundrum", anchor=False)
     if attempt > 0:
         st.markdown(f"*Attempt {attempt + 1} of {MAX_ATTEMPTS} — scores are tied!*")
     st.markdown("Both players work together (or race each other).")

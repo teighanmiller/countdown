@@ -39,7 +39,7 @@ def render():
     p1, p2 = st.session_state.players
     phase = st.session_state.get("theme_guess_phase", "p1")
 
-    st.markdown("## Theme Guess Round")
+    st.header("Theme Guess Round", anchor=False)
     st.markdown(
         f"**Category:** {game.get('themeCategory', 'General Knowledge')} — "
         "What's the hidden theme connecting all rounds?"
@@ -50,7 +50,7 @@ def render():
     if phase == "p1":
         _render_guess(p1, "theme_p1_guess", "theme_p1_score")
     elif phase == "handoff_p2":
-        st.markdown(f"## Hand the device to {p2}")
+        st.header(f"Hand the device to {p2}", anchor=False)
         st.markdown(f"**{p2}**, it's your turn to guess the theme!")
         if st.button(f"I'm {p2} — I'm ready", type="primary", use_container_width=True):
             st.session_state.theme_guess_phase = "p2"

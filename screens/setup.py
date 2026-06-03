@@ -2,8 +2,8 @@ import streamlit as st
 
 
 def render():
-    st.markdown("## COUNTDOWN", help=None)
-    st.markdown("### The AI-Powered Game Show")
+    st.header("COUNTDOWN", anchor=False)
+    st.subheader("The AI-Powered Game Show", anchor=False)
     st.markdown("---")
     st.markdown(
         "A hidden theme connects every round. Guess it at the end for bonus points."
@@ -15,7 +15,7 @@ def render():
     with col2:
         p2 = st.text_input("Player 2 Name", placeholder="Bob", key="p2_input")
 
-    st.markdown("#### Theme Difficulty")
+    st.markdown("<h4>Theme Difficulty</h4>", unsafe_allow_html=True)
     difficulty = st.radio(
         "How obscure should the hidden theme be?",
         options=["easy", "medium", "hard"],
