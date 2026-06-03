@@ -12,6 +12,9 @@ TOTAL_SECONDS = SOLVE_SECONDS + ANSWER_SECONDS
 
 @st.fragment(run_every=1)
 def _timer_fragment():
+    if st.session_state.get("screen") != "letter" or st.session_state.get("round_phase") not in ("p1", "p2"):
+        return
+
     start_key = st.session_state.get("_active_start_key")
     if not start_key or start_key not in st.session_state:
         return
