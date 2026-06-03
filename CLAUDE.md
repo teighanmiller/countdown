@@ -49,7 +49,7 @@ streamlit run app.py
 6. Results + theme reveal + AI debrief
 
 ## Deployment
-Streamlit Community Cloud — connect GitHub repo, set `ANTHROPIC_API_KEY` in secrets, done.
+Streamlit Community Cloud — connect GitHub repo, set `OPENAI_API_KEY` in secrets, done.
 
 ## Dependencies
-See `requirements.txt`. Key: `anthropic`, `streamlit`, `sentence-transformers`, `wikipedia`, `numpy`.
+See `requirements.txt`. Key: `openai`, `streamlit`, `sentence-transformers`, `wikipedia`, `numpy`.

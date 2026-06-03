@@ -10,7 +10,7 @@ from lib.validator import evaluate_expression
 from lib.wikipedia_rag import fetch_and_embed, retrieve
 
 DIFFICULTY_PROMPT = {
-    "easy": "Choose a broad, well-known theme (e.g. 'Animals', 'Sports', 'Space'). Clues should be obvious.",
+    "easy": "Choose a broad, well-known theme (e.g. 'Animals', 'Sports', 'Food', 'Music', 'Weather', 'Travel') — but do NOT reuse these exact examples; pick something fresh. Clues should be obvious.",
     "medium": "Choose a moderately specific theme (e.g. 'The Olympic Games', 'Dinosaurs', 'Classic Rock'). Clues should be inferrable.",
     "hard": "Choose a narrow, niche theme (e.g. 'Michael Jordan's 1996 season', 'The Apollo 13 mission', 'Led Zeppelin's IV album'). Clues should be subtle.",
 }
@@ -35,18 +35,41 @@ def _scramble(word: str) -> str:
 
 
 def _validate_letter_round(round_data: dict) -> bool:
-    letters = [l.upper() for l in round_data.get("letters", [])]
     optimal = round_data.get("optimalWord", "").upper()
-    if len(letters) != 9 or len(optimal) < 3:
-        return False
-    from collections import Counter
+    return 7 <= len(optimal) <= 9 and is_valid_word(optimal)
 
-    avail = Counter(letters)
-    needed = Counter(optimal)
-    for ch, cnt in needed.items():
-        if avail[ch] < cnt:
-            return False
-    return is_valid_word(optimal)
+
+def _has_longer_word(letters: list[str], min_len: int) -> bool:
+    """Return True if any valid dictionary word longer than min_len can be formed from letters."""
+    from collections import Counter
+    from lib.dictionary import all_words
+    avail = Counter(l.upper() for l in letters)
+    for w in all_words():
+        if len(w) <= min_len:
+            continue
+        needed = Counter(w)
+        if all(avail[ch] >= cnt for ch, cnt in needed.items()):
+            return True
+    return False
+
+
+def _pad_letters(word: str) -> list[str]:
+    """Pad word to 9 letters with safe letters that don't allow any longer valid word."""
+    letters = list(word.upper())
+    needed = 9 - len(letters)
+    if needed <= 0:
+        return letters
+
+    candidates = list("BCDFGHJKLMNPQRSTVWXYZ")
+    for _ in range(needed):
+        random.shuffle(candidates)
+        for c in candidates:
+            if not _has_longer_word(letters + [c], len(word)):
+                letters.append(c)
+                break
+        else:
+            letters.append(random.choice(list(word.upper())))
+    return letters
 
 
 def _validate_number_round(round_data: dict) -> bool:
@@ -91,14 +114,11 @@ def generate_game_session(
 
     difficulty_word_guidance = {
         "easy": (
-            "Choose optimalWords that are COMMON, EVERYDAY English words — the kind any adult would know without any specialist knowledge. "
-            "Think words from basic conversation, school, or daily life: things like WATER, BRIDGE, LIGHT, STONE, RIVER, CLOUD, TRADE, PLANT. "
-            "Absolutely NO domain-specific vocabulary, technical terms, scientific names, archaic words, or obscure nouns. "
-            "If a word would require a dictionary to define, reject it. "
-            "The thematic connection is nice but secondary — word familiarity comes first on easy mode."
+            "Choose optimalWords that are COMMON, EVERYDAY English words players will recognise immediately once unscrambled — "
+            "things like STARFISH, CALENDAR, FOOTBALL, MOUNTAIN. No specialist vocabulary, scientific names, or archaic words."
         ),
-        "medium": "Choose optimalWords that are clearly connected to the theme but require some knowledge to recognise — not the most obvious word, but still recognisably thematic. Avoid highly technical jargon.",
-        "hard": "Choose optimalWords with subtle or indirect thematic connections that only an expert would notice immediately. Obscure but valid dictionary words are fine.",
+        "medium": "Choose optimalWords clearly connected to the theme but needing some knowledge to place — recognisable once seen, but not the first word that comes to mind.",
+        "hard": "Choose optimalWords with subtle or indirect thematic connections that only an expert would spot. Obscure but valid dictionary words are fine.",
     }[difficulty]
 
     user = f"""Theme: {theme}
@@ -114,8 +134,7 @@ Generate a complete Countdown game session as JSON with exactly this structure:
   "themeCategory": "{category}",
   "letterRounds": [
     {{
-      "letters": ["<9 uppercase single letters — must contain all letters of optimalWord, plus extras>"],
-      "optimalWord": "<a valid English dictionary word with a strong thematic connection — see word guidance below>",
+      "optimalWord": "<a valid English dictionary word, 7-9 letters, with a strong thematic connection — see word guidance below>",
       "themeConnection": "<1 sentence explaining the connection, revealed at end>"
     }},
     ... (3 total letter rounds, each with a DIFFERENT optimalWord)
@@ -144,7 +163,7 @@ Generate a complete Countdown game session as JSON with exactly this structure:
 Word guidance for letter rounds: {difficulty_word_guidance}
 
 Hard rules:
-- Letter round 'letters' must be exactly 9 uppercase single letters; 'optimalWord' must be formable from those exact letters
+- 'optimalWord' must be exactly 7, 8, or 9 letters — prefer 8 or 9 where possible
 - 'optimalWord' must be a real English dictionary word (no proper nouns, no abbreviations)
 - Number round 'available' must be exactly 6 integers; large numbers ONLY from the set {{25, 50, 75, 100}}
 - 'solutionPath' must evaluate exactly to 'target' using only +, -, *, / and the available numbers (each at most once)
@@ -186,15 +205,14 @@ def _sanitize_commentary(session: dict) -> dict:
 
 def _repair_session(session: dict, attempts: int = 2) -> dict:
     """Validate and fix invalid rounds in the session."""
-    for i, lr in enumerate(session.get("letterRounds", [])):
-        if not _validate_letter_round(lr):
-            solvable, word = _find_valid_word_for_letters(lr.get("letters", []))
-            if solvable:
-                session["letterRounds"][i]["optimalWord"] = word
-            else:
-                # Replace with a known-good fallback
-                session["letterRounds"][i]["letters"] = list("TELESCOPE")
-                session["letterRounds"][i]["optimalWord"] = "TELESCOPE"
+    for lr in session.get("letterRounds", []):
+        word = lr.get("optimalWord", "").upper()
+        if not (7 <= len(word) <= 9 and is_valid_word(word)):
+            word = "TELESCOPE"
+        lr["optimalWord"] = word
+        padded = _pad_letters(word)
+        random.shuffle(padded)
+        lr["letters"] = padded
 
     for i, nr in enumerate(session.get("numberRounds", [])):
         if not _validate_number_round(nr):
@@ -211,7 +229,6 @@ def _repair_session(session: dict, attempts: int = 2) -> dict:
     word = conundrum.get("word", "")
     if len(word) != 9 or not is_valid_word(word):
         session["conundrum"]["word"] = "TELESCOPE"
-
     session["conundrum"]["scrambled"] = _scramble(session["conundrum"]["word"])
     return session
 

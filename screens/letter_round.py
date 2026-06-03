@@ -3,6 +3,7 @@ import time
 import streamlit as st
 
 from lib.validator import check_word_from_letters
+from lib.wikipedia_rag import preload_model
 
 SOLVE_SECONDS = 30
 ANSWER_SECONDS = 10
@@ -64,6 +65,9 @@ def render():
     if start_key not in st.session_state:
         st.session_state[start_key] = time.time()
         st.session_state.timer_phase = "solve"
+        if not st.session_state.get("_model_preload_started"):
+            st.session_state._model_preload_started = True
+            preload_model()
     st.session_state._active_start_key = start_key
 
     elapsed = time.time() - st.session_state[start_key]
@@ -93,7 +97,7 @@ def render():
     st.markdown("")
 
     if in_answer_phase:
-        st.markdown("**Make the longest word you can from these letters.**")
+        st.markdown("**Unscramble these letters to find the hidden thematic word.**")
         word_input = st.text_input(
             "Your word", key=f"letter_word_{r_idx}_{phase}", placeholder="Type here..."
         )
@@ -112,13 +116,8 @@ def render():
 
 def _handle_submission(word, letters, r_idx, phase, p1, p2, round_data, game, auto=False):
     if word:
-        valid, reason = check_word_from_letters(word, letters)
-        if not valid:
-            if not auto:
-                st.error(f"Invalid: {reason}")
-                return
-            word = ""
-        score = len(word) if word else 0
+        valid, _ = check_word_from_letters(word, letters)
+        score = len(word) if valid else 0
     else:
         score = 0
 

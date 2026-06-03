@@ -1,17 +1,27 @@
 from __future__ import annotations
 
+import threading
 import numpy as np
 import wikipedia
 from sentence_transformers import SentenceTransformer
 
 _model: SentenceTransformer | None = None
+_model_lock = threading.Lock()
 
 
 def _get_model() -> SentenceTransformer:
     global _model
     if _model is None:
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        with _model_lock:
+            if _model is None:
+                _model = SentenceTransformer("all-MiniLM-L6-v2")
     return _model
+
+
+def preload_model() -> None:
+    """Load the sentence transformer in a background thread if not already loaded."""
+    if _model is None:
+        threading.Thread(target=_get_model, daemon=True).start()
 
 
 def fetch_and_embed(query: str) -> tuple[list[str], np.ndarray]:

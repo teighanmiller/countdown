@@ -18,7 +18,7 @@ def render():
             st.markdown(f"**{p2}**")
             st.markdown(f"Word: `{result['p2']['word']}`")
             st.markdown(f"Score this round: **{result['p2']['score']} pts**")
-        st.markdown(f"Best possible word: **{result['optimal']}** ({len(result['optimal'])} letters)")
+        st.markdown(f"The word was: **{result['optimal']}** ({len(result['optimal'])} letters)")
     else:
         st.header(f"Number Round {result['round']} — Results", anchor=False)
         col1, col2 = st.columns(2)
