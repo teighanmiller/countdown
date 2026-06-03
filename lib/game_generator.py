@@ -4,10 +4,12 @@ import random
 import re
 
 from lib.claude_client import chat_json
-from lib.dictionary import is_valid_word
+from lib.dictionary import all_words, is_valid_word
 from lib.solver import solve
 from lib.validator import evaluate_expression
 from lib.wikipedia_rag import fetch_and_embed, retrieve
+
+_WORD_SYSTEM = "You are a word game helper. Respond with ONLY a JSON object — no markdown, no explanation."
 
 DIFFICULTY_PROMPT = {
     "easy": "Choose a broad, well-known theme (e.g. 'Animals', 'Sports', 'Food', 'Music', 'Weather', 'Travel') — but do NOT reuse these exact examples; pick something fresh. Clues should be obvious.",
@@ -23,6 +25,51 @@ GAME_SYSTEM = """You are a creative game show producer for Countdown, an AI-powe
 You are building a complete themed game session. All letter sets and number puzzles must be connected to the hidden theme.
 The player knows a theme exists but not what it is.
 Respond with ONLY a JSON object — no markdown, no explanation."""
+
+
+def _retry_letter_word(theme: str, difficulty: str, max_retries: int = 3) -> str | None:
+    guidance = {
+        "easy": "a very common English word (like STARFISH or CALENDAR)",
+        "medium": "a recognisable English word connected to the theme",
+        "hard": "an English word with a subtle connection to the theme",
+    }.get(difficulty, "a common English word")
+    prompt = (
+        f'For a Countdown game themed around "{theme}", suggest {guidance}.\n'
+        f"Requirements: exactly 7, 8, or 9 letters; a real dictionary word; no proper nouns.\n"
+        f'Return ONLY: {{"word": "<the word>"}}'
+    )
+    for _ in range(max_retries):
+        try:
+            result = chat_json(_WORD_SYSTEM, prompt, max_tokens=64)
+            word = result.get("word", "").upper().strip()
+            if 7 <= len(word) <= 9 and is_valid_word(word):
+                return word
+        except Exception:
+            continue
+    return None
+
+
+def _retry_conundrum_word(theme: str, max_retries: int = 3) -> str | None:
+    prompt = (
+        f'For a Countdown game themed around "{theme}", suggest the most iconic 9-letter English dictionary word associated with this theme.\n'
+        f"Requirements: exactly 9 letters; a real dictionary word; no proper nouns.\n"
+        f'Return ONLY: {{"word": "<the word>"}}'
+    )
+    for _ in range(max_retries):
+        try:
+            result = chat_json(_WORD_SYSTEM, prompt, max_tokens=64)
+            word = result.get("word", "").upper().strip()
+            if len(word) == 9 and is_valid_word(word):
+                return word
+        except Exception:
+            continue
+    return None
+
+
+def _fallback_word(length_pred) -> str:
+    """Pick a random valid word from the dictionary as a last resort."""
+    candidates = [w for w in all_words() if length_pred(len(w))]
+    return random.choice(list(candidates)) if candidates else "TELESCOPE"
 
 
 def _scramble(word: str) -> str:
@@ -42,7 +89,6 @@ def _validate_letter_round(round_data: dict) -> bool:
 def _has_longer_word(letters: list[str], min_len: int) -> bool:
     """Return True if any valid dictionary word longer than min_len can be formed from letters."""
     from collections import Counter
-    from lib.dictionary import all_words
     avail = Counter(l.upper() for l in letters)
     for w in all_words():
         if len(w) <= min_len:
@@ -203,12 +249,14 @@ def _sanitize_commentary(session: dict) -> dict:
     return session
 
 
-def _repair_session(session: dict, attempts: int = 2) -> dict:
+def _repair_session(session: dict, difficulty: str = "medium") -> dict:
     """Validate and fix invalid rounds in the session."""
+    theme = session.get("theme", "")
+
     for lr in session.get("letterRounds", []):
         word = lr.get("optimalWord", "").upper()
         if not (7 <= len(word) <= 9 and is_valid_word(word)):
-            word = "TELESCOPE"
+            word = _retry_letter_word(theme, difficulty) or _fallback_word(lambda n: 7 <= n <= 9)
         lr["optimalWord"] = word
         padded = _pad_letters(word)
         random.shuffle(padded)
@@ -226,9 +274,10 @@ def _repair_session(session: dict, attempts: int = 2) -> dict:
                 session["numberRounds"][i]["available"] = [25, 50, 75, 100, 6, 3]
 
     conundrum = session.get("conundrum", {})
-    word = conundrum.get("word", "")
+    word = conundrum.get("word", "").upper()
     if len(word) != 9 or not is_valid_word(word):
-        session["conundrum"]["word"] = "TELESCOPE"
+        word = _retry_conundrum_word(theme) or _fallback_word(lambda n: n == 9)
+        session["conundrum"]["word"] = word
     session["conundrum"]["scrambled"] = _scramble(session["conundrum"]["word"])
     return session
 
@@ -236,7 +285,6 @@ def _repair_session(session: dict, attempts: int = 2) -> dict:
 def _find_valid_word_for_letters(letters: list[str]) -> tuple[bool, str]:
     """Try to find the longest valid word formable from the given letters."""
     from collections import Counter
-    from lib.dictionary import all_words
 
     avail = Counter(l.upper() for l in letters)
     best = ""
@@ -248,12 +296,16 @@ def _find_valid_word_for_letters(letters: list[str]) -> tuple[bool, str]:
     return bool(best), best
 
 
-def build_game(difficulty: str, today: str) -> dict:
+def build_game(difficulty: str, today: str, on_progress=None) -> dict:
     """Full two-step generation pipeline. Returns validated game session."""
-    # Step 1: theme
+    def _step(msg: str):
+        if on_progress:
+            on_progress(msg)
+
+    _step("Picking a secret theme...")
     theme_data = generate_theme(difficulty, today)
 
-    # Step 2: fetch Wikipedia + embed
+    _step("Researching on Wikipedia...")
     chunks, embeddings = fetch_and_embed(theme_data["wikipedia_query"])
     context = retrieve(
         f"numeric facts, key events, and important words related to {theme_data['theme']}",
@@ -262,12 +314,13 @@ def build_game(difficulty: str, today: str) -> dict:
         top_k=5,
     )
 
-    # Step 3: generate full session with Wikipedia context
+    _step("Crafting your 7 rounds...")
     session = generate_game_session(theme_data, context, difficulty)
-    session = _repair_session(session)
+
+    _step("Validating all puzzles...")
+    session = _repair_session(session, difficulty)
     session = _sanitize_commentary(session)
 
-    # Store wiki assets for theme-guess scoring later
     session["_wiki_chunks"] = chunks
     session["_wiki_embeddings"] = embeddings.tolist()
 
