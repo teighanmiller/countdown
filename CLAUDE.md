@@ -15,7 +15,7 @@ streamlit run app.py
 - `OPENAI_API_KEY` — required. Set in `.streamlit/secrets.toml` locally or in Streamlit Community Cloud secrets.
 
 ## LLM
-`gpt-4.1-nano` via the OpenAI Python SDK (`openai`). Client is in `lib/claude_client.py` — `chat()` and `chat_json()` are the only two callsites; swapping models means changing `MODEL_ID` there.
+`gpt-4.1-nano` via the OpenAI Python SDK (`openai`). Client is in `lib/llm_client.py` — `chat()` and `chat_json()` are the only two callsites; swapping models means changing `MODEL_ID` there.
 
 ## Key Architecture Decisions
 

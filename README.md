@@ -4,19 +4,17 @@ A two-player, pass-the-device web adaptation of the UK game show *Countdown*. An
 
 ## Live Demo
 
-> Add your Streamlit Community Cloud URL here after deployment.
+🔗 **[Play it here](https://countdown-ai.streamlit.app)**
 
 ## How to Run Locally
 
 **Prerequisites:** Python 3.12+, [uv](https://docs.astral.sh/uv/)
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/teighanmiller/countdown.git
 cd countdown
-
-uv venv
+uv sync
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-uv add -r requirements.txt
 ```
 
 Add your API key to `.streamlit/secrets.toml` (create this file — it's gitignored):
@@ -65,13 +63,17 @@ streamlit run app.py
 
 Wikipedia is continuously updated, so the game content is genuinely dynamic — a game about an ongoing topic will reflect the latest article text.
 
+### Dynamic Behavior
+
+Every game is unique: the AI selects a fresh theme each session, pulling the current version of its Wikipedia article. Difficulty controls how obscure the theme is (broad categories on Easy, niche topics on Hard), so the game adapts to the players' knowledge level. Because Wikipedia reflects real-world events as they happen, a game themed around an ongoing topic will use up-to-date facts.
+
 ## Project Structure
 
 ```
 app.py                 # Streamlit entry point — screen router
 screens/               # One module per game screen
   setup.py             # Player names + difficulty
-  loading.py           # Game generation (shows spinner)
+  loading.py           # Game generation with live progress
   intro.py             # Theme category announcement
   letter_round.py      # Letter round UI + pass-device flow
   number_round.py      # Number round UI + pass-device flow
@@ -80,14 +82,14 @@ screens/               # One module per game screen
   conundrum.py         # Final scrambled word
   results.py           # Scores + theme reveal + debrief
 lib/
-  claude_client.py     # Claude API wrapper
+  llm_client.py        # OpenAI API wrapper (gpt-4.1-nano)
   game_generator.py    # Two-step generation pipeline
   wikipedia_rag.py     # Fetch → chunk → embed → retrieve
   dictionary.py        # SOWPODS word set loader
   validator.py         # Word + arithmetic expression validation
   solver.py            # Countdown numbers solver (fallback validation)
 data/
-  sowpods.txt          # English word list
+  sowpods.txt          # English word list (270k words)
 ```
 
 ## Tech Stack

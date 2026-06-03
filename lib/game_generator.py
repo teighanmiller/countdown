@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 import re
 
-from lib.claude_client import chat_json
+from lib.llm_client import chat_json
 from lib.dictionary import all_words, is_valid_word
 from lib.solver import solve
 from lib.validator import evaluate_expression
