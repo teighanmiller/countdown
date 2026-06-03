@@ -171,12 +171,9 @@ def _score_round(r_idx, p1, p2, round_data, game):
     p2_ans = st.session_state.p2_answer
     s1, s2 = p1_ans["score"], p2_ans["score"]
 
-    if s1 > s2:
+    if s1 > 0:
         st.session_state.scores[0] += s1
-    elif s2 > s1:
-        st.session_state.scores[1] += s2
-    else:
-        st.session_state.scores[0] += s1
+    if s2 > 0:
         st.session_state.scores[1] += s2
 
     overall_round = st.session_state.current_round
