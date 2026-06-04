@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Game Over</h1>
+<hr>
+
+<div class="winner-banner">
+  {% if winner %}
+  <div class="winner-label">Winner</div>
+  <div class="winner-name">{{ winner }}</div>
+  {% else %}
+  <div class="winner-name" style="font-size:1.5rem">It's a Tie!</div>
+  {% endif %}
+  <p class="winner-message">{{ win_message }}</p>
+</div>
+
+<div class="scoreboard">
+  <div class="score-card">
+    <div class="score-name">{{ players[0] }}</div>
+    <div class="score-value">{{ scores[0] }}</div>
+  </div>
+  <div class="score-card">
+    <div class="score-name">{{ players[1] }}</div>
+    <div class="score-value">{{ scores[1] }}</div>
+  </div>
+</div>
+
+{% if conundrum_winner %}
+<p class="muted" style="text-align:center;margin:0.5rem 0">
+  Conundrum won by <strong class="gold">{{ conundrum_winner }}</strong> (+10 pts)
+</p>
+{% endif %}
+
+<hr>
+
+<p class="muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.3rem">The hidden theme was</p>
+<div class="theme-reveal">{{ game.theme }}</div>
+
+<p>{{ game.commentary.themeReveal }}</p>
+
+<hr>
+<h3>Theme Guesses</h3>
+<div class="answer-row" style="margin-bottom:1rem">
+  <div class="answer-card">
+    <div class="answer-name">{{ players[0] }}</div>
+    <div class="answer-word" style="font-size:1rem">{{ theme_p1_guess if theme_p1_guess else "(no guess)" }}</div>
+    <div class="answer-score">Score: <span>{{ theme_p1_score }}</span></div>
+  </div>
+  <div class="answer-card">
+    <div class="answer-name">{{ players[1] }}</div>
+    <div class="answer-word" style="font-size:1rem">{{ theme_p2_guess if theme_p2_guess else "(no guess)" }}</div>
+    <div class="answer-score">Score: <span>{{ theme_p2_score }}</span></div>
+  </div>
+</div>
+
+<hr>
+<h3>Round Connections</h3>
+<div style="margin-bottom:1.5rem">
+  {% for r in round_results %}
+  <div class="round-log-item">
+    <div class="round-log-header">
+      Round {{ r.round_num }} —
+      {% if r.type == "letter" %}Letters{% else %}Numbers{% endif %}
+    </div>
+    <div class="round-log-detail">
+      <strong class="gold">{{ r.optimal }}</strong>
+      {% if r.connection %} — {{ r.connection }}{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% if game.conundrum.themeConnection %}
+  <div class="round-log-item">
+    <div class="round-log-header">Conundrum</div>
+    <div class="round-log-detail">
+      <strong class="gold">{{ game.conundrum.word }}</strong> — {{ game.conundrum.themeConnection }}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<form method="post" action="/play-again">
+  <button type="submit" class="btn btn-full">Play Again</button>
+</form>
+{% endblock %}

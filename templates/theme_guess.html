@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Theme Guess</h2>
+<p class="muted">{{ player }}'s turn</p>
+<hr>
+
+<div class="card">
+  <p class="muted" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.3rem">Category hint</p>
+  <p class="gold" style="font-size:1.3rem;font-weight:bold;margin-bottom:0">{{ category }}</p>
+</div>
+
+<p>What theme do you think connected all 6 rounds? Type your best guess below.</p>
+
+<form method="post" action="/theme-guess/submit">
+  <div class="form-group">
+    <input type="text" name="guess" placeholder="Your guess..." autofocus autocomplete="off">
+  </div>
+  <button type="submit" class="btn btn-full">Submit Guess</button>
+</form>
+{% endblock %}

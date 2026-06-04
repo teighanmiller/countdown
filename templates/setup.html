@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Countdown</h1>
+<p class="muted">Two-player AI word &amp; number game</p>
+<hr>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<form method="post" action="/setup">
+  <div class="form-group">
+    <label for="p1">Player 1 Name</label>
+    <input type="text" id="p1" name="p1" placeholder="Enter name" autofocus required>
+  </div>
+  <div class="form-group">
+    <label for="p2">Player 2 Name</label>
+    <input type="text" id="p2" name="p2" placeholder="Enter name" required>
+  </div>
+  <div class="form-group">
+    <label>Difficulty</label>
+    <div class="radio-group">
+      <label class="radio-option">
+        <input type="radio" name="difficulty" value="easy"> Easy
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="difficulty" value="medium" checked> Medium
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="difficulty" value="hard"> Hard
+      </label>
+    </div>
+  </div>
+  <br>
+  <button type="submit" class="btn btn-full">Start Game</button>
+</form>
+{% endblock %}

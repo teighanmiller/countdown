@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Theme Guess Result</h2>
+<p class="muted">{{ player }}</p>
+<hr>
+
+<div class="card center">
+  <p class="muted" style="margin-bottom:0.4rem">Your guess</p>
+  <p style="font-size:1.3rem;font-weight:bold;color:#fff;margin-bottom:1rem">
+    {{ guess if guess else "(no guess)" }}
+  </p>
+
+  <p class="muted" style="margin-bottom:0.3rem">How close?</p>
+  {% set temp = temperature %}
+  {% if "fire" in temp.lower() %}
+  <p class="temp-label temp-hot" style="font-size:2rem">🔥 {{ temperature }}</p>
+  {% elif "warm" in temp.lower() %}
+  <p class="temp-label temp-warm" style="font-size:2rem">🌡️ {{ temperature }}</p>
+  {% elif "lukewarm" in temp.lower() %}
+  <p class="temp-label temp-lukewarm" style="font-size:2rem">🌤️ {{ temperature }}</p>
+  {% elif "cold" in temp.lower() and "ice" not in temp.lower() %}
+  <p class="temp-label temp-cold" style="font-size:2rem">❄️ {{ temperature }}</p>
+  {% else %}
+  <p class="temp-label temp-ice" style="font-size:2rem">🧊 {{ temperature }}</p>
+  {% endif %}
+
+  <p style="margin-top:1rem;font-size:1.5rem;font-weight:bold">+{{ score }} pts</p>
+</div>
+
+<br>
+<form method="post" action="/theme-guess/next">
+  {% if is_last %}
+  <button type="submit" class="btn btn-full">Continue to Conundrum →</button>
+  {% else %}
+  <button type="submit" class="btn btn-full">Pass to Other Player →</button>
+  {% endif %}
+</form>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Conundrum</h2>
+<p class="muted">First to unscramble wins 10 points!</p>
+<hr>
+
+<div class="letters-grid" style="margin-bottom:1rem">
+  {% for letter in scrambled %}
+  <div class="letter-box">{{ letter }}</div>
+  {% endfor %}
+</div>
+
+<div class="timer-display">
+  <div class="timer-number" id="timer-num">30</div>
+  <div class="timer-label" id="timer-label">seconds</div>
+</div>
+
+{% if attempt > 0 %}
+<p class="error center" style="margin-bottom:1rem">
+  Neither correct — attempt {{ attempt }} of 3. Try again!
+</p>
+{% endif %}
+
+<form id="con-form" method="post" action="/conundrum/submit">
+  <div class="answer-row">
+    <div class="form-group">
+      <label>{{ players[0] }}'s answer</label>
+      <input type="text" name="p1_answer" placeholder="{{ players[0] }}..." autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="form-group">
+      <label>{{ players[1] }}'s answer</label>
+      <input type="text" name="p2_answer" placeholder="{{ players[1] }}..." autocomplete="off" autocapitalize="characters">
+    </div>
+  </div>
+  <button type="submit" class="btn btn-full">Submit</button>
+</form>
+
+<script>
+(function () {
+  var rem = 30;
+  var numEl = document.getElementById('timer-num');
+  var lblEl = document.getElementById('timer-label');
+  var form = document.getElementById('con-form');
+
+  var iv = setInterval(function () {
+    rem--;
+    if (rem < 0) { clearInterval(iv); return; }
+    var c = rem <= 5 ? '#ff4444' : rem <= 10 ? '#ff8800' : '#FFD700';
+    numEl.textContent = rem;
+    numEl.style.color = c;
+    if (rem === 0) {
+      clearInterval(iv);
+      numEl.textContent = '⏰';
+      numEl.style.color = '#ff4444';
+      lblEl.textContent = "Time’s up!";
+      form.submit();
+    }
+  }, 1000);
+})();
+</script>
+{% endblock %}

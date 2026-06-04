@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:baseline">
+  <h2>Round {{ round_num }} — Letters</h2>
+  <span class="muted">{{ player }}'s turn</span>
+</div>
+<hr>
+
+<div class="letters-grid">
+  {% for letter in letters %}
+  <div class="letter-box">{{ letter.upper() }}</div>
+  {% endfor %}
+</div>
+
+<div class="timer-display">
+  <div class="timer-number" id="timer-num">30</div>
+  <div class="timer-label" id="timer-label">seconds to think</div>
+</div>
+
+<form id="round-form" method="post" action="/round/submit">
+  <div id="think-area">
+    <p class="muted center">Think of the longest word you can form from these letters...</p>
+    <br>
+    <button type="button" onclick="submitEmpty()" class="btn btn-secondary btn-full">Pass (no word)</button>
+  </div>
+  <div id="answer-area" class="hidden">
+    <div class="form-group">
+      <input type="text" name="answer" id="word-input"
+             placeholder="Type your word..." autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="flex-row">
+      <button type="submit" class="btn" style="flex:2">Submit Word</button>
+      <button type="button" onclick="submitEmpty()" class="btn btn-secondary" style="flex:1">Pass</button>
+    </div>
+  </div>
+</form>
+
+<script>
+(function () {
+  var THINK = 30, ANSWER = 10, TOTAL = THINK + ANSWER;
+  var rem = TOTAL;
+  var numEl = document.getElementById('timer-num');
+  var lblEl = document.getElementById('timer-label');
+  var thinkArea = document.getElementById('think-area');
+  var answerArea = document.getElementById('answer-area');
+  var form = document.getElementById('round-form');
+
+  var iv = setInterval(function () {
+    rem--;
+    if (rem < 0) { clearInterval(iv); return; }
+
+    if (rem > ANSWER) {
+      numEl.textContent = rem - ANSWER;
+      numEl.style.color = '#FFD700';
+      lblEl.textContent = 'seconds to think';
+      lblEl.style.color = '#aaa';
+    } else if (rem > 0) {
+      thinkArea.classList.add('hidden');
+      answerArea.classList.remove('hidden');
+      document.getElementById('word-input').focus();
+      var c = rem <= 5 ? '#ff4444' : '#ff8800';
+      numEl.textContent = rem;
+      numEl.style.color = c;
+      lblEl.textContent = '⚡ Type your answer now!';
+      lblEl.style.color = c;
+    } else {
+      clearInterval(iv);
+      numEl.textContent = '⏰';
+      numEl.style.color = '#ff4444';
+      lblEl.textContent = "Time’s up!";
+      form.submit();
+    }
+  }, 1000);
+})();
+
+function submitEmpty() {
+  var inp = document.getElementById('word-input');
+  if (inp) inp.value = '';
+  document.getElementById('round-form').submit();
+}
+</script>
+{% endblock %}

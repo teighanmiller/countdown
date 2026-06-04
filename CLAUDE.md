@@ -1,18 +1,19 @@
 # Countdown — Project Notes for Claude
 
 ## What This Is
-A two-player, pass-the-device web adaptation of the UK game show *Countdown*, built with Python + Streamlit. An AI agent (Claude) generates the entire game session around a hidden theme before play begins.
+A two-player, pass-the-device web adaptation of the UK game show *Countdown*, built with Python + FastAPI + HTMX. An AI agent generates the entire game session around a hidden theme before play begins.
 
 ## Running the App
 ```bash
 uv venv          # create env (Python 3.12)
 uv pip install -r requirements.txt
 source .venv/bin/activate
-streamlit run app.py
+uvicorn main:app --reload
 ```
+App runs at http://localhost:8000
 
 ## Environment Variables
-- `OPENAI_API_KEY` — required. Set in `.streamlit/secrets.toml` locally or in Streamlit Community Cloud secrets.
+- `OPENAI_API_KEY` — required. Set in a `.env` file or shell environment variable.
 
 ## LLM
 `gpt-4.1-nano` via the OpenAI Python SDK (`openai`). Client is in `lib/llm_client.py` — `chat()` and `chat_json()` are the only two callsites; swapping models means changing `MODEL_ID` there.

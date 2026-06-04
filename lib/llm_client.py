@@ -4,7 +4,6 @@ import json
 import os
 import re
 
-import streamlit as st
 from openai import OpenAI
 
 MODEL_ID = "gpt-4.1-nano"
@@ -15,7 +14,7 @@ _client: OpenAI | None = None
 def _get_client() -> OpenAI:
     global _client
     if _client is None:
-        key = st.secrets.get("OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        key = os.environ.get("OPENAI_API_KEY")
         if not key:
             raise RuntimeError("OPENAI_API_KEY not set")
         _client = OpenAI(api_key=key)

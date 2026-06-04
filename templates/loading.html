@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Generating Your Game</h1>
+<p class="muted">Crafting your themed puzzles — usually 20–40 seconds...</p>
+<hr>
+<div class="card">
+  <div
+    hx-get="/loading/poll"
+    hx-trigger="load, every 2s"
+    hx-target="#progress-steps"
+    hx-swap="innerHTML">
+    <div id="progress-steps">
+      <div class="progress-step">Initializing...</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

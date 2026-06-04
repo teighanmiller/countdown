@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Countdown</h1>
+<p class="muted">{{ players[0] }} vs {{ players[1] }}</p>
+<hr>
+
+<p class="muted" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">Theme Category</p>
+<div class="theme-reveal" style="font-size:1.4rem;margin:0.5rem 0 1.5rem">{{ category }}</div>
+
+<p>{{ intro }}</p>
+<hr>
+
+<h3>How to Play</h3>
+<div class="card">
+  <p><strong class="gold">3 × Letter Rounds</strong><br>
+  Nine letters are revealed. Find the longest valid word you can in 30 seconds, then type it in 10 seconds.</p>
+  <p><strong class="gold">3 × Number Rounds</strong><br>
+  Hit a target number using 6 available numbers with +, −, ×, ÷. Closer to the target = more points.</p>
+  <p><strong class="gold">Theme Guess</strong><br>
+  What secret theme connects all the rounds? Guess it after round 6 — the closer, the more points.</p>
+  <p style="margin-bottom:0"><strong class="gold">Conundrum</strong><br>
+  A scrambled 9-letter word. First player to unscramble it wins 10 bonus points.</p>
+</div>
+<br>
+<form method="post" action="/start">
+  <button type="submit" class="btn btn-full">Start Round 1 →</button>
+</form>
+{% endblock %}

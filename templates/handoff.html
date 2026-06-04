@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="handoff-box">
+  <p class="muted" style="margin-bottom:1rem">Pass the device to</p>
+  <div class="handoff-name">{{ player }}</div>
+  <p class="muted" style="margin:0.5rem 0 2.5rem">Don't let the other player peek!</p>
+  <form method="post" action="{{ ready_url }}">
+    <button type="submit" class="btn">I'm {{ player }} — I'm Ready</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Round {{ result.round_num }} Results</h2>
+<hr>
+
+<div class="answer-row">
+  <div class="answer-card">
+    <div class="answer-name">{{ result.p1.name }}</div>
+    {% if result.type == "letter" %}
+    <div class="answer-word">{{ result.p1.word }}</div>
+    {% else %}
+    <div class="answer-word" style="font-size:1rem">{{ result.p1.expr }}</div>
+    {% endif %}
+    <div class="answer-score">Score: <span>{{ result.p1.score }}</span></div>
+  </div>
+  <div class="answer-card">
+    <div class="answer-name">{{ result.p2.name }}</div>
+    {% if result.type == "letter" %}
+    <div class="answer-word">{{ result.p2.word }}</div>
+    {% else %}
+    <div class="answer-word" style="font-size:1rem">{{ result.p2.expr }}</div>
+    {% endif %}
+    <div class="answer-score">Score: <span>{{ result.p2.score }}</span></div>
+  </div>
+</div>
+
+<div class="optimal-box">
+  <div class="optimal-label">
+    {% if result.type == "letter" %}Best word{% else %}Solution{% endif %}
+  </div>
+  <div class="optimal-word">{{ result.optimal }}</div>
+  {% if result.connection %}
+  <div class="optimal-connection">{{ result.connection }}</div>
+  {% endif %}
+</div>
+
+{% if result.commentary %}
+<p class="commentary">"{{ result.commentary }}"</p>
+{% endif %}
+
+<hr>
+<h3>Scoreboard</h3>
+<div class="scoreboard">
+  <div class="score-card">
+    <div class="score-name">{{ players[0] }}</div>
+    <div class="score-value">{{ scores[0] }}</div>
+  </div>
+  <div class="score-card">
+    <div class="score-name">{{ players[1] }}</div>
+    <div class="score-value">{{ scores[1] }}</div>
+  </div>
+</div>
+
+<br>
+<form method="post" action="/round-result/next">
+  <button type="submit" class="btn btn-full">Next →</button>
+</form>
+{% endblock %}
