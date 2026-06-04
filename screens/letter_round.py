@@ -1,6 +1,7 @@
 import time
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from lib.validator import check_word_from_letters
 from lib.wikipedia_rag import preload_model
@@ -10,61 +11,75 @@ ANSWER_SECONDS = 10
 TOTAL_SECONDS = SOLVE_SECONDS + ANSWER_SECONDS
 
 
-@st.fragment(run_every=1)
-def _timer_fragment():
-    if st.session_state.get("screen") != "letter" or st.session_state.get("round_phase") not in ("p1", "p2"):
-        return
+def _countdown_html(total_remaining: int) -> str:
+    if total_remaining > ANSWER_SECONDS:
+        init_num = total_remaining - ANSWER_SECONDS
+        init_color = "#FFD700"
+        init_msg = "seconds to think"
+        init_msg_color = "#aaa"
+    elif total_remaining > 0:
+        init_num = total_remaining
+        init_color = "#ff4444" if total_remaining <= 5 else "#ff8800"
+        init_msg = "⚡ Type your answer now!"
+        init_msg_color = init_color
+    else:
+        init_num = "⏰"
+        init_color = "#ff4444"
+        init_msg = "Time’s up — submit what you have!"
+        init_msg_color = "#ff4444"
 
+    return f"""
+<div style="text-align:center;padding:0.25rem 0;">
+  <div style="font-size:3rem;font-weight:bold;color:{init_color};line-height:1;" id="lr_t">{init_num}</div>
+  <div style="margin-top:0.3rem;font-weight:bold;color:{init_msg_color};" id="lr_m">{init_msg}</div>
+</div>
+<script>
+(function(){{
+  var rem={total_remaining};
+  var el=document.getElementById('lr_t');
+  var ml=document.getElementById('lr_m');
+  if(!el||!ml)return;
+  var iv=setInterval(function(){{
+    rem--;
+    if(rem<0){{clearInterval(iv);return;}}
+    if(rem>{ANSWER_SECONDS}){{
+      el.textContent=rem-{ANSWER_SECONDS};
+      el.style.color='#FFD700';
+      ml.textContent='seconds to think';
+      ml.style.color='#aaa';
+    }}else if(rem>0){{
+      var c=rem<=5?'#ff4444':'#ff8800';
+      el.textContent=rem;
+      el.style.color=c;
+      ml.textContent='⚡ Type your answer now!';
+      ml.style.color=c;
+    }}else{{
+      el.textContent='⏰';
+      el.style.color='#ff4444';
+      ml.textContent='Time’s up — submit what you have!';
+      ml.style.color='#ff4444';
+    }}
+  }},1000);
+}})();
+</script>
+"""
+
+
+@st.fragment(run_every=5)
+def _auto_submit_watcher():
+    if st.session_state.get("screen") != "letter":
+        return
+    if st.session_state.get("round_phase") not in ("p1", "p2"):
+        return
     start_key = st.session_state.get("_active_start_key")
     if not start_key or start_key not in st.session_state:
         return
-
-    e = time.time() - st.session_state[start_key]
-    game = st.session_state.game
-    r_idx = st.session_state.current_round // 2
-    phase = st.session_state.round_phase
-    p1, p2 = st.session_state.players
-    round_data = game["letterRounds"][r_idx]
-    letters = round_data["letters"]
-
-    if e >= TOTAL_SECONDS:
-        word = st.session_state.get(f"letter_word_{r_idx}_{phase}", "")
-        _handle_submission(word.strip(), letters, r_idx, phase, p1, p2, round_data, game, auto=True)
-        return
-
-    if e < SOLVE_SECONDS:
-        remaining = max(0, SOLVE_SECONDS - int(e))
-        st.markdown(
-            f"<div style='font-size:3rem;font-weight:bold;color:#FFD700;text-align:center;'>{remaining}</div>"
-            f"<div style='text-align:center;color:#aaa;margin-top:0.2rem;'>seconds to think</div>",
-            unsafe_allow_html=True,
-        )
-        st.info("Work out your answer — input unlocks when the timer reaches 0.")
-    else:
-        remaining = max(0, TOTAL_SECONDS - int(e))
-        color = "#ff4444" if remaining <= 5 else "#ff8800"
-        st.markdown(
-            f"<div style='font-size:3rem;font-weight:bold;color:{color};text-align:center;'>{remaining}</div>"
-            f"<div style='text-align:center;color:{color};font-weight:bold;margin-top:0.2rem;'>⚡ Type your answer now!</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown("**Unscramble these letters to find the hidden thematic word.**")
-        word_input = st.text_input(
-            "Your word", key=f"letter_word_{r_idx}_{phase}", placeholder="Type here..."
-        )
-        col_submit, col_pass = st.columns([2, 1])
-        with col_submit:
-            submitted = st.button("Submit Word", type="primary", use_container_width=True)
-        with col_pass:
-            passed = st.button("Pass (no word)", use_container_width=True)
-        if submitted or passed:
-            word = word_input.strip() if submitted else ""
-            _handle_submission(word, letters, r_idx, phase, p1, p2, round_data, game)
+    if time.time() - st.session_state[start_key] >= TOTAL_SECONDS:
+        st.rerun()
 
 
 def _round_index() -> int:
-    r = st.session_state.current_round
-    return r // 2
+    return st.session_state.current_round // 2
 
 
 def render():
@@ -105,7 +120,24 @@ def render():
         )
 
     st.markdown("")
-    _timer_fragment()
+    total_remaining = max(0, int(TOTAL_SECONDS - elapsed))
+    components.html(_countdown_html(total_remaining), height=90)
+    st.markdown("")
+
+    word_input = st.text_input(
+        "Your word", key=f"letter_word_{r_idx}_{phase}", placeholder="Type here when ready..."
+    )
+    col_submit, col_pass = st.columns([2, 1])
+    with col_submit:
+        submitted = st.button("Submit Word", type="primary", use_container_width=True)
+    with col_pass:
+        passed = st.button("Pass (no word)", use_container_width=True)
+
+    if submitted or passed:
+        word = word_input.strip() if submitted else ""
+        _handle_submission(word, letters, r_idx, phase, p1, p2, round_data, game)
+
+    _auto_submit_watcher()
 
 
 def render_handoff():
