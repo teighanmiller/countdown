@@ -2,7 +2,7 @@
 
 A two-player web adaptation of the UK game show *Countdown*. Before play begins, an AI agent picks a secret theme and builds the entire game around it — every letter set, every number target, and the final conundrum word are thematically connected. Players try to deduce the theme across 7 rounds, then guess it directly for bonus points.
 
-**[Play it here →](countdown-production-e6ee.up.railway.app)**
+**Play it here → countdown-production-e6ee.up.railway.app**
 
 ---
 
