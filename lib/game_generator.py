@@ -215,7 +215,8 @@ Hard rules:
 - 'solutionPath' must evaluate exactly to 'target' using only +, -, *, / and the available numbers (each at most once)
 - Conundrum 'word' must be exactly 9 letters and a real English dictionary word
 - 'afterRounds' must contain exactly 6 strings — one per round
-- CRITICAL commentary rule: 'intro' and every 'afterRounds' string must contain ZERO thematic content. No subject hints, no topic words, no category clues. Pure gameplay commentary only. Players are guessing the theme themselves."""
+- CRITICAL commentary rule: 'intro' and every 'afterRounds' string must contain ZERO thematic content. No subject hints, no topic words, no category clues. Pure gameplay commentary only. Players are guessing the theme themselves.
+- BANNED words — never use these as optimalWord or conundrum word: ASTRONAUT, TELESCOPE, ADVENTURE, BEAUTIFUL, CROSSWORD, EDUCATION, SECRETARY, IMPORTANT, PROGRAMME, PASSENGER, SHOULDERS, SOMETHING, WONDERFUL, NIGHTMARE, SEPTEMBER, AUSTRALIA, CHOCOLATE, DIFFERENT, REPRESENT, SOMETIMES, SURPRISED, CARIBBEAN, FORGOTTEN, CHARACTER, BEHAVIOUR, EMERGENCY, IMPORTANT, BRILLIANT, COMMUNITY, AVAILABLE, LANDSCAPE, THEREFORE, CERTAINLY, ABANDONED, NECESSARY, TERRITORY, CHOCOLATE, BUTTERFLY, ABANDONED, YESTERDAY, MECHANISM, ATTENTION, COMMITTEE. These are overused — pick something distinctive and thematically specific."""
 
     return chat_json(GAME_SYSTEM, user, max_tokens=2048)
 

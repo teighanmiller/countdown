@@ -34,8 +34,10 @@ def render():
             st.error("Both players need a name to start.")
             return
 
-        st.session_state.players = [p1.strip(), p2.strip()]
-        st.session_state.difficulty = difficulty
-        st.session_state.pop("_generation_ready", None)
+        players = [p1.strip(), p2.strip()]
+        diff = difficulty
+        st.session_state.clear()
+        st.session_state.players = players
+        st.session_state.difficulty = diff
         st.session_state.screen = "loading"
         st.rerun()

@@ -72,13 +72,5 @@ def render():
 
     st.markdown("---")
     if st.button("Play Again", type="primary", use_container_width=True):
-        _GAME_KEYS = {
-            "game", "scores", "round_results", "current_round", "round_phase",
-            "p1_answer", "p2_answer", "conundrum_attempt", "conundrum_winner",
-            "theme_guess_phase", "theme_p1_score", "theme_p2_score",
-            "theme_p1_guess_text", "theme_p2_guess_text",
-            "players", "difficulty", "screen", "_generation_ready",
-        }
-        for key in _GAME_KEYS:
-            st.session_state.pop(key, None)
+        st.session_state.clear()
         st.rerun()
